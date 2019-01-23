@@ -10,6 +10,7 @@ import scrap.webScrap as scrap
 info_string='Uploading and Fetching data from Web.. Please wait'
 known_face_encodings = None
 known_face_names = None
+known_face_info = None
 
 class ThreadHelper(threading.Thread):
     def run(self):
@@ -21,8 +22,8 @@ class ThreadHelper(threading.Thread):
 
 
 def train_model():
-    global known_face_encodings, known_face_names
-    known_face_encodings, known_face_names = train.load_and_encode_images()
+    global known_face_encodings, known_face_names, known_face_info
+    known_face_encodings, known_face_names, known_face_info = train.load_and_encode_images()
 
 
 def save_still_image():
@@ -37,6 +38,7 @@ def save_still_image():
     while ui.for_online_search:
         ui.update()
         ui.set_name(info_string, 'info')
+    ui.set_msg('')
     ui.show_buttons()
 
 
@@ -48,7 +50,7 @@ video_capture = cv2.VideoCapture(0)
 while True:
     ret, frame = video_capture.read()
 
-    recognized_frame, name = train.recognize(known_face_encodings, known_face_names, frame)
+    recognized_frame, name, info = train.recognize(known_face_encodings, known_face_names, known_face_info, frame)
     if recognized_frame is None:
         recognized_frame = frame
         ui.set_msg("Please Train the Model First")
@@ -56,8 +58,7 @@ while True:
     b, g, r = cv2.split(recognized_frame)
     recognized_frame = cv2.merge((r, g, b))
     photo = PIL.ImageTk.PhotoImage(image=PIL.Image.fromarray(recognized_frame))
-
     ui.set_image(photo)
     if name is not None:
-        ui.set_name(name, None)
+        ui.set_name(name+'\n'+'info: ' +info, None)
     ui.update()
